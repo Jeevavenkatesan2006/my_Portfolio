@@ -29,7 +29,7 @@ export default function Projects() {
       gradient: "from-green-500 to-emerald-500",
       icon: "🙋‍♂️",
       highlights: ["myself", "connect with social media", "Mail"],
-      liveDemo: "https://jeeva-portfolio-beta.vercel.app/",
+      liveDemo: "https://my-portfolio-puce-rho-73.vercel.app/",
       github: "https://github.com/Jeevavenkatesan2006",
     },
 
