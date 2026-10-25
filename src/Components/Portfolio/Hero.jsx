@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import React from "react";
 import { motion } from "framer-motion";
 import { ChevronDown, Sparkles } from "lucide-react";
@@ -82,7 +81,7 @@ export default function Hero() {
             transition={{ delay: 1.1, duration: 0.8 }}
             className="text-2xl md:text-3xl text-gray-300 font-light"
           >
-            Front-End Web Developer
+            Full Stack Developer
           </motion.p>
 
           {/* Description */}
