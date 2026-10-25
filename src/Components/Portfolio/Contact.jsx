@@ -1,47 +1,39 @@
-/* eslint-disable no-unused-vars */
-import React, { useRef, useEffect, useState } from "react";
+
+import React, { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import {
   Mail,
-  Phone,
   Linkedin,
   Github,
   Send,
   MapPin,
-   Instagram,
-  X as XIcon,
+  Instagram,
 } from "lucide-react";
-import emailjs from "emailjs-com"; // use @emailjs/browser
+import emailjs from "@emailjs/browser";
 
 export default function Contact() {
-  const ref = useRef(null);
+  const sectionRef = useRef(null);
   const formRef = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  const isInView = useInView(sectionRef, {
+    once: true,
+    margin: "-100px",
+  });
 
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
+    from_email: "",
     message: "",
   });
+
   const [isSending, setIsSending] = useState(false);
-  const [status, setStatus] = useState(null); // { type: 'success' | 'error', message: string }
+  const [status, setStatus] = useState(null);
 
-  // ---- Replace these IDs with your actual EmailJS IDs if different ----
-  const SERVICE_ID = "service_351re5j";
+  // Replace these with the exact IDs from your EmailJS dashboard.
+  const SERVICE_ID = "service_0upia3t";
   const TEMPLATE_ID = "template_3fk9gct";
-  const PUBLIC_KEY = "BmSGc6rSev5Qvq0jI";
-  // ----------------------------------------------------------------------
-
-  useEffect(() => {
-    // Initialize EmailJS once
-    try {
-      emailjs.init(PUBLIC_KEY);
-      console.info("EmailJS initialized with public key");
-    } catch (err) {
-      console.error("EmailJS init failed:", err);
-    }
-  }, []);
+  const PUBLIC_KEY = "geaqB5eE_-AOn0W73";
 
   const contactInfo = [
     {
@@ -52,17 +44,17 @@ export default function Contact() {
       color: "from-red-500 to-pink-500",
     },
     {
-  icon: Instagram,
-  label: "Instagram",
-  value: "Follow me on Instagram",
-  link: "https://www.instagram.com/jee_v_a006?igsh=MWc1MWM5czBudHczNQ==",
-  color: "from-pink-500 to-purple-500",
-},
+      icon: Instagram,
+      label: "Instagram",
+      value: "Follow me on Instagram",
+      link: "https://www.instagram.com/jee_v_a006/",
+      color: "from-pink-500 to-purple-500",
+    },
     {
       icon: Linkedin,
       label: "LinkedIn",
       value: "Connect with me",
-      link: "http://www.linkedin.com/in/jeeva-v-212006bca",
+      link: "https://www.linkedin.com/in/jeeva-v-212006bca",
       color: "from-blue-500 to-cyan-500",
     },
     {
@@ -74,213 +66,254 @@ export default function Contact() {
     },
   ];
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+
+    setFormData((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (isSending) return;
+
     setStatus(null);
 
-    // Basic validation
     if (
       !formData.name.trim() ||
-      !formData.email.trim() ||
+      !formData.from_email.trim() ||
       !formData.message.trim()
     ) {
-      setStatus({ type: "error", message: "Please fill all fields." });
+      setStatus({
+        type: "error",
+        message: "Please fill in all fields.",
+      });
       return;
     }
 
     setIsSending(true);
 
     try {
-      // sendForm uses the form element values (so keep name attributes in sync with template variables)
       const result = await emailjs.sendForm(
         SERVICE_ID,
         TEMPLATE_ID,
-        formRef.current
+        formRef.current,
+        {
+          publicKey: PUBLIC_KEY,
+        }
       );
-      console.log("EmailJS result:", result);
+
+      console.log("EmailJS success:", result.status, result.text);
 
       setStatus({
         type: "success",
-        message: "Message sent successfully! Thank you.",
+        message: "Message sent successfully!",
       });
-      setFormData({ name: "", email: "", message: "" });
+
+      setFormData({
+        name: "",
+        from_email: "",
+        message: "",
+      });
+
+      formRef.current.reset();
     } catch (error) {
       console.error("EmailJS error:", error);
 
-      // Provide more helpful error text if available
-      const errText =
-        (error && (error.text || error.message)) ||
-        "Failed to send message. Please check console for details or try again later.";
-
-      setStatus({ type: "error", message: errText });
+      setStatus({
+        type: "error",
+        message:
+          error?.text ||
+          error?.message ||
+          "Unable to send message. Please check your EmailJS settings.",
+      });
     } finally {
       setIsSending(false);
     }
   };
 
+  const inputClasses =
+    "contact-input block w-full box-border rounded-lg border border-purple-500/30 bg-slate-700 px-4 py-3 text-white placeholder-gray-400 opacity-100 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/40";
+
   return (
     <section
       id="contact"
-      ref={ref}
-      className="py-32 px-6 bg-slate-900/30 relative overflow-hidden"
+      ref={sectionRef}
+      className="relative overflow-hidden bg-slate-900/30 px-6 py-32"
     >
-      <div className="max-w-6xl mx-auto relative z-10">
-        {/* Section Header */}
+      <style>{`
+        #contact .contact-input {
+          pointer-events: auto !important;
+          user-select: text !important;
+          -webkit-user-select: text !important;
+          cursor: text;
+          position: relative;
+          z-index: 1;
+        }
+
+        #contact .contact-input:disabled {
+          cursor: not-allowed;
+        }
+      `}</style>
+
+      <div className="relative z-10 mx-auto max-w-6xl">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="mb-16 text-center"
         >
-          <motion.h2
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={isInView ? { opacity: 1, scale: 1 } : {}}
-            transition={{ type: "spring", bounce: 0.6 }}
-            className="text-4xl md:text-5xl font-bold text-white mb-4"
-          >
+          <h2 className="mb-4 text-4xl font-bold text-white md:text-5xl">
             Get In{" "}
-            <motion.span
-              className="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent inline-block"
-              animate={{ rotateX: [0, 360] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
+            <span className="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
               Touch
-            </motion.span>
-          </motion.h2>
+            </span>
+          </h2>
 
-          <motion.div
-            initial={{ width: 0 }}
-            animate={isInView ? { width: "100px" } : {}}
-            transition={{ delay: 0.3, duration: 0.8 }}
-            className="h-1 bg-gradient-to-r from-purple-500 to-pink-500 mx-auto rounded-full"
-          />
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
-            transition={{ delay: 0.4 }}
-            className="text-gray-400 mt-4 text-lg"
-          >
+          <div className="mx-auto h-1 w-24 rounded-full bg-gradient-to-r from-purple-500 to-pink-500" />
+
+          <p className="mt-4 text-lg text-gray-400">
             Lets create something amazing together!
-          </motion.p>
+          </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-12">
-          {/* Contact Info */}
+        <div className="grid gap-12 md:grid-cols-2">
+          {/* Contact information */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ delay: 0.3, duration: 0.8 }}
+            transition={{ delay: 0.2, duration: 0.8 }}
             className="space-y-6"
           >
-            {contactInfo.map((info, index) => (
-              <motion.a
-                key={info.label}
-                href={info.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                initial={{ opacity: 0, x: -20 }}
-                animate={isInView ? { opacity: 1, x: 0 } : {}}
-                transition={{ delay: 0.5 + index * 0.1, duration: 0.5 }}
-                whileHover={{ scale: 1.05 }}
-                className="flex items-center gap-4 p-4 bg-slate-700/30 border border-purple-500/20 rounded-xl hover:border-purple-500/50 transition-all"
-              >
-                <div
-                  className={`w-14 h-14 bg-gradient-to-r ${info.color} rounded-xl flex items-center justify-center`}
-                >
-                  <info.icon className="w-7 h-7 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-400">{info.label}</p>
-                  <p className="text-white font-medium">{info.value}</p>
-                </div>
-              </motion.a>
-            ))}
+            {contactInfo.map((info, index) => {
+              const Icon = info.icon;
 
-            {/* Location Card */}
-            <motion.div className="p-6 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-xl relative overflow-hidden">
+              return (
+                <motion.a
+                  key={info.label}
+                  href={info.link}
+                  target={
+                    info.label === "Email" ? undefined : "_blank"
+                  }
+                  rel="noopener noreferrer"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={isInView ? { opacity: 1, x: 0 } : {}}
+                  transition={{
+                    delay: 0.3 + index * 0.1,
+                    duration: 0.5,
+                  }}
+                  whileHover={{ scale: 1.03 }}
+                  className="flex items-center gap-4 rounded-xl border border-purple-500/20 bg-slate-700/30 p-4 transition-all hover:border-purple-500/50"
+                >
+                  <div
+                    className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r ${info.color}`}
+                  >
+                    <Icon className="h-7 w-7 text-white" />
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="text-sm text-gray-400">
+                      {info.label}
+                    </p>
+                    <p className="break-words font-medium text-white">
+                      {info.value}
+                    </p>
+                  </div>
+                </motion.a>
+              );
+            })}
+
+            <div className="rounded-xl border border-purple-500/30 bg-gradient-to-r from-purple-500/10 to-pink-500/10 p-6">
               <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-purple-400 mt-1" />
+                <MapPin className="mt-1 h-5 w-5 text-purple-400" />
+
                 <div>
-                  <p className="text-white font-semibold mb-1">Location</p>
-                  <p className="text-gray-400">Tamil Nadu, India</p>
+                  <p className="mb-1 font-semibold text-white">
+                    Location
+                  </p>
+                  <p className="text-gray-400">
+                    Tamil Nadu, India
+                  </p>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </motion.div>
 
-          {/* Contact Form */}
+          {/* Editable contact form */}
           <motion.form
             ref={formRef}
             onSubmit={handleSubmit}
             initial={{ opacity: 0, x: 50 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ delay: 0.5, duration: 0.8 }}
-            className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/20 rounded-2xl p-8 space-y-6"
+            transition={{ delay: 0.3, duration: 0.8 }}
+            className="relative z-10 space-y-6 rounded-2xl border border-purple-500/20 bg-slate-800/80 p-8 backdrop-blur-sm"
           >
-            <h3 className="text-2xl font-bold text-white mb-6">
+            <h3 className="mb-6 text-2xl font-bold text-white">
               Send Me a Message
             </h3>
 
-            {/* Name */}
             <input
               type="text"
-              name="from_name" // must match template variable
+              name="name"
               placeholder="Your Name"
               value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
+              onChange={handleChange}
+              autoComplete="name"
               required
-              className="w-full px-4 py-3 bg-slate-700/50 border border-purple-500/30 text-white placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/30"
+              className={inputClasses}
             />
 
-            {/* Email */}
             <input
               type="email"
-              name="from_email" // must match template variable
+              name="from_email"
               placeholder="Your Email"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
+              value={formData.from_email}
+              onChange={handleChange}
+              autoComplete="email"
               required
-              className="w-full px-4 py-3 bg-slate-700/50 border border-purple-500/30 text-white placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/30"
+              className={inputClasses}
             />
 
-            {/* Message */}
             <textarea
-              name="message" // must match template variable
+              name="message"
               placeholder="Your Message"
               value={formData.message}
-              onChange={(e) =>
-                setFormData({ ...formData, message: e.target.value })
-              }
+              onChange={handleChange}
               required
-              className="w-full px-4 py-3 bg-slate-700/50 border border-purple-500/30 text-white placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/30 h-32"
+              rows={5}
+              className={`${inputClasses} resize-y`}
             />
 
-            {/* Status message */}
+            <input
+              type="hidden"
+              name="title"
+              value="Portfolio Contact Form"
+              readOnly
+            />
+
             {status && (
               <div
-                className={`text-sm p-3 rounded ${
+                role="status"
+                aria-live="polite"
+                className={`rounded-lg p-3 text-sm ${
                   status.type === "success"
-                    ? "bg-green-800 text-green-200"
-                    : "bg-red-800 text-red-200"
+                    ? "bg-green-800 text-green-100"
+                    : "bg-red-800 text-red-100"
                 }`}
               >
                 {status.message}
               </div>
             )}
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={isSending}
-              className={`w-full ${
-                isSending ? "opacity-70 cursor-not-allowed" : ""
-              } bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-4 rounded-xl flex items-center justify-center gap-2 hover:from-purple-700 hover:to-pink-700 transition-all`}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 py-4 font-semibold text-white transition-all hover:from-purple-700 hover:to-pink-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <Send className="w-5 h-5" />
+              <Send className="h-5 w-5" />
               {isSending ? "Sending..." : "Send Message"}
             </button>
           </motion.form>
